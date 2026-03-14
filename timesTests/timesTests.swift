@@ -38,7 +38,11 @@ import Testing
     #expect(tag.isActive)
     #expect(tag.endDate == nil)
 
+    let before = Date()
     tag.close()
+    let after = Date()
     #expect(!tag.isActive)
     #expect(tag.endDate != nil)
+    #expect(tag.endDate! >= before)
+    #expect(tag.endDate! <= after)
 }
