@@ -153,7 +153,7 @@ struct ChatView: View {
                             ChatMessageCell(
                                 post: post,
                                 previousTime: prevPost?.createdAt,
-                                previousTagIDs: prevPost?.tags.map { Set($0.map(\.id)) },
+                                previousTagIDs: prevPost?.tags?.map { Set($0.map(\.id)) },
                                 previousLocationName: prevPost?.locationName,
                                 onThreadTap: { selectedThreadPost = post },
                                 onEdit: { editingPost = post },

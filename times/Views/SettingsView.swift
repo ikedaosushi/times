@@ -80,21 +80,52 @@ struct TagManagementView: View {
 
     var body: some View {
         List {
-            ForEach(tags, id: \.id) { tag in
-                HStack {
-                    Image(systemName: "bookmark.fill")
-                        .foregroundStyle(tag.color)
-                        .frame(width: 24)
-                    Text(tag.name)
-                    Spacer()
-                    Text("\((tag.posts ?? []).count)件")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            Section("アクティブ") {
+                ForEach(tags.filter { $0.isActive }, id: \.id) { tag in
+                    HStack {
+                        Image(systemName: "bookmark.fill")
+                            .foregroundStyle(tag.color)
+                            .frame(width: 24)
+                        Text(tag.name)
+                        Spacer()
+                        Text("\((tag.posts ?? []).count)件")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .swipeActions {
+                        Button("終了") {
+                            tag.close()
+                        }
+                        .tint(.orange)
+                    }
                 }
             }
-            .onDelete { indexSet in
-                for index in indexSet {
-                    modelContext.delete(tags[index])
+
+            Section("終了") {
+                ForEach(tags.filter { !$0.isActive }, id: \.id) { tag in
+                    HStack {
+                        Image(systemName: "bookmark")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24)
+                        VStack(alignment: .leading) {
+                            Text(tag.name)
+                            if let endDate = tag.endDate {
+                                Text("\(tag.startDate, format: .dateTime.month().day()) 〜 \(endDate, format: .dateTime.month().day())")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        Text("\((tag.posts ?? []).count)件")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .onDelete { indexSet in
+                    let inactive = tags.filter { !$0.isActive }
+                    for index in indexSet {
+                        modelContext.delete(inactive[index])
+                    }
                 }
             }
         }
