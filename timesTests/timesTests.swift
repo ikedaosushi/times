@@ -33,18 +33,12 @@ import Testing
     #expect(channel.sortedPosts.isEmpty)
 }
 
-@Test func testTagPresets() {
-    #expect(!Tag.presets.isEmpty)
-    #expect(Tag.presets.contains { $0.name == "レストラン" })
-    #expect(Tag.presets.contains { $0.name == "カフェ" })
-}
+@Test func testTagClose() {
+    let tag = Tag(name: "旅行")
+    #expect(tag.isActive)
+    #expect(tag.endDate == nil)
 
-@Test func testEventTagClose() {
-    let eventTag = EventTag(name: "旅行")
-    #expect(eventTag.isActive)
-    #expect(eventTag.endDate == nil)
-
-    eventTag.close()
-    #expect(!eventTag.isActive)
-    #expect(eventTag.endDate != nil)
+    tag.close()
+    #expect(!tag.isActive)
+    #expect(tag.endDate != nil)
 }

@@ -27,8 +27,6 @@ final class Post {
     @Relationship(deleteRule: .nullify, inverse: \Tag.posts)
     var tags: [Tag]? = []
 
-    var eventTag: EventTag?
-
     var isTopLevel: Bool {
         parentPost == nil
     }
