@@ -12,7 +12,6 @@ struct ChatInputBox: View {
     @State private var showTagPicker = false
     @State private var showLocationPicker = false
     @State private var selectedTags: [Tag] = []
-    @State private var selectedEventTag: EventTag?
     @State private var locationName: String?
     @State private var latitude: Double?
     @State private var longitude: Double?
@@ -33,7 +32,7 @@ struct ChatInputBox: View {
         }
         .background(.background)
         .sheet(isPresented: $showTagPicker) {
-            TagPickerView(selectedTags: $selectedTags, selectedEventTag: $selectedEventTag)
+            TagPickerView(selectedTags: $selectedTags)
         }
         .sheet(isPresented: $showLocationPicker) {
             LocationPickerView(locationName: $locationName, latitude: $latitude, longitude: $longitude)
@@ -59,12 +58,9 @@ struct ChatInputBox: View {
 
     @ViewBuilder
     private var tagsBar: some View {
-        if !selectedTags.isEmpty || selectedEventTag != nil {
+        if !selectedTags.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    if let eventTag = selectedEventTag {
-                        eventTagChip(eventTag)
-                    }
                     ForEach(selectedTags, id: \.id) { tag in
                         tagChip(tag)
                     }
@@ -75,28 +71,9 @@ struct ChatInputBox: View {
         }
     }
 
-    private func eventTagChip(_ eventTag: EventTag) -> some View {
-        HStack(spacing: 2) {
-            Image(systemName: "bookmark.fill")
-                .font(.caption2)
-            Text(eventTag.name)
-                .font(.caption)
-            Button {
-                selectedEventTag = nil
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.caption2)
-            }
-        }
-        .foregroundStyle(eventTag.color)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
-        .background(eventTag.color.opacity(0.12), in: Capsule())
-    }
-
     private func tagChip(_ tag: Tag) -> some View {
         HStack(spacing: 2) {
-            Image(systemName: tag.icon)
+            Image(systemName: "bookmark.fill")
                 .font(.caption2)
             Text(tag.name)
                 .font(.caption)
@@ -278,7 +255,6 @@ struct ChatInputBox: View {
         let postText = text
         let postImageData = imageData
         let postTags = selectedTags
-        let postEventTag = selectedEventTag
         let postLocationName = locationName
         let postLatitude = latitude
         let postLongitude = longitude
@@ -297,7 +273,6 @@ struct ChatInputBox: View {
         )
         post.channel = channel
         post.tags = postTags
-        post.eventTag = postEventTag
 
         if let url = detectURL(in: postText) {
             post.urlString = url.absoluteString

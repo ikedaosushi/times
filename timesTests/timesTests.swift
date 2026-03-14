@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import times
 
 @Test func testUserSettingsLogicalDate() {

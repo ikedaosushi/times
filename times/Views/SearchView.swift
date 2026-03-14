@@ -118,7 +118,7 @@ struct SearchView: View {
                 ForEach(allTags, id: \.id) { tag in
                     tagChip(
                         label: tag.name,
-                        icon: tag.icon,
+                        icon: "bookmark.fill",
                         color: tag.color,
                         isSelected: selectedTag?.id == tag.id
                     ) {

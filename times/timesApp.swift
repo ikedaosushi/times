@@ -4,7 +4,7 @@ import SwiftData
 @main
 struct timesApp: App {
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Channel.self, Post.self, Tag.self, EventTag.self, UserSettings.self])
+        let schema = Schema([Channel.self, Post.self, Tag.self, UserSettings.self])
         let modelConfiguration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,

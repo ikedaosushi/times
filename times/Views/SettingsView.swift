@@ -37,9 +37,6 @@ struct SettingsView: View {
                     NavigationLink("タグ一覧") {
                         TagManagementView()
                     }
-                    NavigationLink("イベントタグ一覧") {
-                        EventTagManagementView()
-                    }
                 }
 
                 Section("AI設定") {
@@ -85,7 +82,7 @@ struct TagManagementView: View {
         List {
             ForEach(tags, id: \.id) { tag in
                 HStack {
-                    Image(systemName: tag.icon)
+                    Image(systemName: "bookmark.fill")
                         .foregroundStyle(tag.color)
                         .frame(width: 24)
                     Text(tag.name)
@@ -105,61 +102,3 @@ struct TagManagementView: View {
     }
 }
 
-// MARK: - Event Tag Management
-
-struct EventTagManagementView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: \EventTag.createdAt) private var eventTags: [EventTag]
-
-    var body: some View {
-        List {
-            Section("アクティブ") {
-                ForEach(eventTags.filter { $0.isActive }, id: \.id) { eventTag in
-                    HStack {
-                        Image(systemName: "bookmark.fill")
-                            .foregroundStyle(eventTag.color)
-                        Text(eventTag.name)
-                        Spacer()
-                        Text("\((eventTag.posts ?? []).count)件")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .swipeActions {
-                        Button("終了") {
-                            eventTag.close()
-                        }
-                        .tint(.orange)
-                    }
-                }
-            }
-
-            Section("終了") {
-                ForEach(eventTags.filter { !$0.isActive }, id: \.id) { eventTag in
-                    HStack {
-                        Image(systemName: "bookmark")
-                            .foregroundStyle(.secondary)
-                        VStack(alignment: .leading) {
-                            Text(eventTag.name)
-                            if let endDate = eventTag.endDate {
-                                Text("\(eventTag.startDate, format: .dateTime.month().day()) 〜 \(endDate, format: .dateTime.month().day())")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                        Text("\((eventTag.posts ?? []).count)件")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .onDelete { indexSet in
-                    let inactive = eventTags.filter { !$0.isActive }
-                    for index in indexSet {
-                        modelContext.delete(inactive[index])
-                    }
-                }
-            }
-        }
-        .navigationTitle("イベントタグ")
-    }
-}

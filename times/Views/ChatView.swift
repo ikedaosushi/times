@@ -14,6 +14,7 @@ struct ChatView: View {
     @State private var aiGeneratingPost: Post?
     @State private var aiErrorMessage: String?
     @State private var showSearch = false
+    @State private var tagEditingPost: Post?
 
     @Query private var settingsArray: [UserSettings]
     private var settings: UserSettings {
@@ -35,9 +36,13 @@ struct ChatView: View {
         lastKnownPostCount = topLevel.count
     }
 
-    private func scrollToBottom() {
+    private func scrollToBottom(animated: Bool = false) {
         if let lastPost = cachedGroupedByDate.last?.1.last {
-            withAnimation(.easeOut(duration: 0.2)) {
+            if animated {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    scrollProxy?.scrollTo(lastPost.id, anchor: .bottom)
+                }
+            } else {
                 scrollProxy?.scrollTo(lastPost.id, anchor: .bottom)
             }
         }
@@ -45,7 +50,7 @@ struct ChatView: View {
 
     private func recomputeAndScroll() {
         recomputeGroupedByDate()
-        scrollToBottom()
+        scrollToBottom(animated: false)
     }
 
     var body: some View {
@@ -78,6 +83,16 @@ struct ChatView: View {
         }
         .sheet(item: $editingPost) { post in
             PostEditView(post: post)
+        }
+        .sheet(item: $tagEditingPost) { post in
+            NavigationStack {
+                TagPickerView(
+                    selectedTags: Binding(
+                        get: { post.tags ?? [] },
+                        set: { post.tags = $0 }
+                    )
+                )
+            }
         }
         .overlay {
             if aiGeneratingPost != nil {
@@ -139,13 +154,13 @@ struct ChatView: View {
                                 post: post,
                                 previousTime: prevPost?.createdAt,
                                 previousTagIDs: prevPost?.tags.map { Set($0.map(\.id)) },
-                                previousEventTagID: prevPost?.eventTag?.id,
                                 previousLocationName: prevPost?.locationName,
                                 onThreadTap: { selectedThreadPost = post },
                                 onEdit: { editingPost = post },
                                 onDelete: { deletingPost = post },
                                 onAIComment: { generateAIComment(for: post) },
-                                onBookmarkToggle: { post.isBookmarked.toggle() }
+                                onBookmarkToggle: { post.isBookmarked.toggle() },
+                                onTagEdit: { tagEditingPost = post }
                             )
                             .id(post.id)
                             .padding(.horizontal, 16)
@@ -157,7 +172,7 @@ struct ChatView: View {
             .defaultScrollAnchor(.bottom)
             .onAppear { scrollProxy = proxy }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
-                scrollToBottom()
+                scrollToBottom(animated: true)
             }
         }
     }

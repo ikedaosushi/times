@@ -4,13 +4,15 @@ struct ChatMessageCell: View {
     let post: Post
     var previousTime: Date?
     var previousTagIDs: Set<UUID>?
-    var previousEventTagID: UUID?
     var previousLocationName: String?
     let onThreadTap: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onAIComment: () -> Void
     let onBookmarkToggle: () -> Void
+    let onTagEdit: () -> Void
+
+    @State private var showActions = false
 
     private var shouldShowTime: Bool {
         guard let previousTime else { return true }
@@ -26,11 +28,6 @@ struct ChatMessageCell: View {
         return currentIDs != previousTagIDs
     }
 
-    private var shouldShowEventTag: Bool {
-        guard let eventTag = post.eventTag else { return false }
-        return eventTag.id != previousEventTagID
-    }
-
     private var shouldShowLocation: Bool {
         guard let name = post.locationName, !name.isEmpty else { return false }
         return name != previousLocationName
@@ -44,25 +41,17 @@ struct ChatMessageCell: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
-        .contextMenu {
-            Button(action: onThreadTap) {
-                Label("スレッドで返信", systemImage: "bubble.left.and.bubble.right")
-            }
-            Button(action: onAIComment) {
-                Label("AIにコメントさせる", systemImage: "sparkles")
-            }
-            Button(action: onBookmarkToggle) {
-                Label(
-                    post.isBookmarked ? "ブックマーク解除" : "ブックマーク",
-                    systemImage: post.isBookmarked ? "bookmark.slash" : "bookmark"
-                )
-            }
-            Button(action: onEdit) {
-                Label("編集", systemImage: "pencil")
-            }
-            Button(role: .destructive, action: onDelete) {
-                Label("削除", systemImage: "trash")
-            }
+        .onLongPressGesture {
+            showActions = true
+        }
+        .confirmationDialog("アクション", isPresented: $showActions, titleVisibility: .hidden) {
+            Button("スレッドで返信", action: onThreadTap)
+            Button("AIにコメントさせる", action: onAIComment)
+            Button(post.isBookmarked ? "ブックマーク解除" : "ブックマーク", action: onBookmarkToggle)
+            Button("タグを編集", action: onTagEdit)
+            Button("編集", action: onEdit)
+            Button("削除", role: .destructive, action: onDelete)
+            Button("キャンセル", role: .cancel) {}
         }
     }
 
@@ -76,7 +65,6 @@ struct ChatMessageCell: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 tagsRow
-                eventTagRow
                 textRow
                 imageRow
                 ogpRow
@@ -93,23 +81,6 @@ struct ChatMessageCell: View {
                     TagBadge(tag: tag)
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private var eventTagRow: some View {
-        if shouldShowEventTag, let eventTag = post.eventTag {
-            HStack(spacing: 4) {
-                Image(systemName: "bookmark.fill")
-                    .font(.caption2)
-                Text(eventTag.name)
-                    .font(.caption)
-            }
-            .foregroundStyle(eventTag.color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(eventTag.color.opacity(0.1))
-            .cornerRadius(4)
         }
     }
 
@@ -135,7 +106,7 @@ struct ChatMessageCell: View {
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: 300, maxHeight: 300)
+                .frame(maxWidth: 300, maxHeight: 300, alignment: .leading)
                 .cornerRadius(8)
         }
     }
@@ -191,7 +162,7 @@ struct TagBadge: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            Image(systemName: tag.icon)
+            Image(systemName: "bookmark.fill")
                 .font(.caption2)
             Text(tag.name)
                 .font(.caption)
